@@ -372,6 +372,11 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
 
   addPathIfExists(D, concat(SysRoot, "/lib"), Paths);
   addPathIfExists(D, concat(SysRoot, "/usr/lib"), Paths);
+
+  // Termux Support
+  addPathIfExists(D, "/data/data/com.termux/files/usr/lib", Paths);
+  getFilePaths().push_back("/data/data/com.termux/files/usr/lib");
+  getProgramPaths().push_back("/data/data/com.termux/files/usr/bin");
 }
 
 ToolChain::RuntimeLibType Linux::GetDefaultRuntimeLibType() const {
@@ -803,6 +808,10 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   addExternCSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/include"));
 
   addExternCSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/include"));
+
+  // Termux Support
+  addExternCSystemInclude(DriverArgs, CC1Args, "/data/data/com.termux/files/usr/include");
+  addExternCSystemInclude(DriverArgs, CC1Args, "/data/data/com.termux/files/usr/include/aarch64-linux-android");
 
   if (!DriverArgs.hasArg(options::OPT_nobuiltininc) && getTriple().isMusl())
     addSystemInclude(DriverArgs, CC1Args, ResourceDirInclude);

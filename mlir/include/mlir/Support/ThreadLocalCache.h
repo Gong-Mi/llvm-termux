@@ -175,7 +175,7 @@ private:
 
   /// Return the static thread local instance of the cache type.
   static CacheType &getStaticCache() {
-    static LLVM_THREAD_LOCAL CacheType cache;
+    alignas(64) static LLVM_THREAD_LOCAL CacheType cache;
     return cache;
   }
 

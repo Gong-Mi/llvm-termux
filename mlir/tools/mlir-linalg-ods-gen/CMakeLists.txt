@@ -7,6 +7,7 @@ set(LLVM_LINK_COMPONENTS
 add_mlir_tool(mlir-linalg-ods-yaml-gen
   mlir-linalg-ods-yaml-gen.cpp
 )
+target_link_options(mlir-linalg-ods-yaml-gen PRIVATE "-Wl,-z,max-page-size=16384" "-Wl,-z,common-page-size=16384")
 llvm_update_compile_flags(mlir-linalg-ods-yaml-gen)
 target_link_libraries(mlir-linalg-ods-yaml-gen PRIVATE
   MLIRIR
