@@ -144,6 +144,9 @@ if(OS_NAME MATCHES "Android|Linux|Fuchsia" AND
       get_compiler_rt_target(${arch} target)
       set(target_cflags --target=${target} ${target_cflags})
     endif()
+    if(OS_NAME MATCHES "Android" AND ${arch} MATCHES "aarch64")
+      list(APPEND target_cflags "-target" "aarch64-linux-gnu")
+    endif()
     set(cxx_${arch}_merge_dir "${CMAKE_CURRENT_BINARY_DIR}/cxx_${arch}_merge.dir")
     file(MAKE_DIRECTORY ${cxx_${arch}_merge_dir})
     add_custom_command(TARGET clang_rt.${name}-${arch} POST_BUILD

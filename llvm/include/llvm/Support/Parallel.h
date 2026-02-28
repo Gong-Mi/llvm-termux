@@ -45,7 +45,7 @@ LLVM_ABI extern ThreadPoolStrategy strategy;
 LLVM_ABI unsigned getThreadIndex();
 #else
 // Don't access this directly, use the getThreadIndex wrapper.
-LLVM_ABI extern thread_local unsigned threadIndex;
+alignas(64) LLVM_ABI extern thread_local unsigned threadIndex;
 
 inline unsigned getThreadIndex() { GET_THREAD_INDEX_IMPL; }
 #endif

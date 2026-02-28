@@ -155,7 +155,12 @@ endif()
 # interface in a WebAssembly-compiled libc; CMake does not yet know how to
 # detect this.
 if (NOT WASM)
-  find_package(Threads REQUIRED)
+  if (ANDROID)
+    set(Threads_FOUND TRUE)
+    set(CMAKE_USE_PTHREADS_INIT TRUE)
+  else()
+    find_package(Threads REQUIRED)
+  endif()
   if(WIN32)
     if(NOT CMAKE_USE_WIN32_THREADS_INIT)
       libomp_error_say("Need Win32 thread interface on Windows.")

@@ -67,6 +67,9 @@ public:
 
   void addExtraOpts(llvm::opt::ArgStringList &CmdArgs) const override;
 
+  void AddCXXStdlibLibArgs(const llvm::opt::ArgList &Args,
+                           llvm::opt::ArgStringList &CmdArgs) const override;
+
   std::vector<std::string> ExtraOpts;
 
   const char *getDefaultLinker() const override;

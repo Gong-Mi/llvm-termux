@@ -66,7 +66,7 @@ void StdThreadPool::grow(int requested) {
 
 #ifndef NDEBUG
 // The group of the tasks run by the current thread.
-static LLVM_THREAD_LOCAL std::vector<ThreadPoolTaskGroup *>
+alignas(64) static LLVM_THREAD_LOCAL std::vector<ThreadPoolTaskGroup *>
     *CurrentThreadTaskGroups = nullptr;
 #endif
 

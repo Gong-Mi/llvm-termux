@@ -16,7 +16,7 @@
 #include "llvm/Support/SaveAndRestore.h"
 
 namespace llvm::sys::sandbox {
-inline LLVM_THREAD_LOCAL bool Enabled = false;
+alignas(64) inline LLVM_THREAD_LOCAL bool Enabled = false;
 struct ScopedSetting {
   SaveAndRestore<bool> Impl;
 };

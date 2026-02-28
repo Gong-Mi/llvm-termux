@@ -245,6 +245,8 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
   if (Distro.IsAlpineLinux() || Triple.isAndroid()) {
     ExtraOpts.push_back("-z");
     ExtraOpts.push_back("now");
+    if (Triple.isAndroid())
+      ExtraOpts.push_back("-lc++_shared");
   }
 
   if (Distro.IsOpenSUSE() || Distro.IsUbuntu() || Distro.IsAlpineLinux() ||
@@ -298,6 +300,13 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
     ExtraOpts.push_back("-X");
 
   const bool IsAndroid = Triple.isAndroid();
+
+  // Termux Support
+  getFilePaths().push_back(concat(SysRoot, "/usr/lib/aarch64-linux-android"));
+  getFilePaths().push_back(concat(SysRoot, "/usr/lib"));
+  getFilePaths().push_back("/system/lib64");
+  getProgramPaths().push_back(concat(SysRoot, "/usr/bin"));
+
   const bool IsMips = Triple.isMIPS();
   const bool IsHexagon = Arch == llvm::Triple::hexagon;
   const bool IsRISCV = Triple.isRISCV();
@@ -372,11 +381,6 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
 
   addPathIfExists(D, concat(SysRoot, "/lib"), Paths);
   addPathIfExists(D, concat(SysRoot, "/usr/lib"), Paths);
-
-  // Termux Support
-  addPathIfExists(D, "/data/data/com.termux/files/usr/lib", Paths);
-  getFilePaths().push_back("/data/data/com.termux/files/usr/lib");
-  getProgramPaths().push_back("/data/data/com.termux/files/usr/bin");
 }
 
 ToolChain::RuntimeLibType Linux::GetDefaultRuntimeLibType() const {
@@ -460,7 +464,7 @@ std::string Linux::computeSysRoot() const {
   if (getVFS().exists(Path))
     return Path;
 
-  return std::string();
+  return "/data/data/com.termux/files";
 }
 
 static void setPAuthABIInTriple(const Driver &D, const ArgList &Args,
@@ -754,6 +758,12 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   if (DriverArgs.hasArg(options::OPT_nostdinc))
     return;
 
+  // Termux Support
+  if (!DriverArgs.hasArg(options::OPT_nostdincxx))
+    addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/include/c++/v1"));
+  addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/include/aarch64-linux-android"));
+  addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/include"));
+
   // Add 'include' in the resource directory, which is similar to
   // GCC_INCLUDE_DIR (private headers) in GCC. Note: the include directory
   // contains some files conflicting with system /usr/include. musl systems
@@ -809,9 +819,6 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 
   addExternCSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/include"));
 
-  // Termux Support
-  addExternCSystemInclude(DriverArgs, CC1Args, "/data/data/com.termux/files/usr/include");
-  addExternCSystemInclude(DriverArgs, CC1Args, "/data/data/com.termux/files/usr/include/aarch64-linux-android");
 
   if (!DriverArgs.hasArg(options::OPT_nobuiltininc) && getTriple().isMusl())
     addSystemInclude(DriverArgs, CC1Args, ResourceDirInclude);
@@ -819,6 +826,12 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 
 void Linux::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
                                      llvm::opt::ArgStringList &CC1Args) const {
+  // Termux Support
+  std::string SysRoot = computeSysRoot();
+  if (addLibStdCXXIncludePaths(concat(SysRoot, "/usr/include/c++/v1"),
+                               "", "", DriverArgs, CC1Args))
+    return;
+
   // We need a detected GCC installation on Linux to provide libstdc++'s
   // headers in odd Linuxish places.
   if (!GCCInstallation.isValid())
@@ -1006,6 +1019,14 @@ void Linux::addProfileRTLibs(const llvm::opt::ArgList &Args,
 void Linux::addExtraOpts(llvm::opt::ArgStringList &CmdArgs) const {
   for (const auto &Opt : ExtraOpts)
     CmdArgs.push_back(Opt.c_str());
+}
+
+void Linux::AddCXXStdlibLibArgs(const ArgList &Args,
+                                ArgStringList &CmdArgs) const {
+  ToolChain::AddCXXStdlibLibArgs(Args, CmdArgs);
+  if (getTriple().isAndroid()) {
+    CmdArgs.push_back(getCompilerRTArgString(Args, "builtins"));
+  }
 }
 
 const char *Linux::getDefaultLinker() const {

@@ -139,20 +139,26 @@ FloatMax Value::getFloatValue() const {
 #else
        internal_memcpy(&Value, &Val, 4);
 #endif
-        return Value;
+        return FloatMax(Value);
       }
       case 64: {
         double Value;
         internal_memcpy(&Value, &Val, 8);
-        return Value;
+        return FloatMax(Value);
       }
     }
   } else {
     switch (getType().getFloatBitWidth()) {
-    case 64: return *reinterpret_cast<double*>(Val);
-    case 80: return *reinterpret_cast<long double*>(Val);
-    case 96: return *reinterpret_cast<long double*>(Val);
-    case 128: return *reinterpret_cast<long double*>(Val);
+    case 64: return FloatMax(*reinterpret_cast<double*>(Val));
+#if defined(__ANDROID__)
+    case 80: return FloatMax(*reinterpret_cast<double*>(Val));
+    case 96: return FloatMax(*reinterpret_cast<double*>(Val));
+    case 128: return FloatMax(*reinterpret_cast<double*>(Val));
+#else
+    case 80: return FloatMax(*reinterpret_cast<long double*>(Val));
+    case 96: return FloatMax(*reinterpret_cast<long double*>(Val));
+    case 128: return FloatMax(*reinterpret_cast<long double*>(Val));
+#endif
     }
   }
   UNREACHABLE("unexpected floating point bit width");
