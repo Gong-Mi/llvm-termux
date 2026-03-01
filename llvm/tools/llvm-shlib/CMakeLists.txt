@@ -41,6 +41,11 @@ if(LLVM_BUILD_LLVM_DYLIB)
     llvm_install_library_symlink(LLVM-${LLVM_VERSION_MAJOR}${LLVM_VERSION_SUFFIX} $<TARGET_FILE_NAME:LLVM> SHARED FULL_DEST COMPONENT LLVM)
   endif()
 
+  if (ANDROID)
+    set_target_properties(LLVM PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    set_target_properties(LLVM PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+  endif()
+
   if (MINGW OR CYGWIN)
     # The LLVM DLL is supposed to export all symbols (except for ones
     # that are explicitly hidden). Normally, this is what happens anyway, but

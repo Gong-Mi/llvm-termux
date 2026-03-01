@@ -65,7 +65,7 @@ template <typename T, typename... U> T *make(U &&... args) {
 template <typename T>
 inline llvm::SpecificBumpPtrAllocator<T> &
 getSpecificAllocSingletonThreadLocal() {
-  thread_local SpecificAlloc<T> instance;
+  alignas(64) thread_local SpecificAlloc<T> instance;
   return instance.alloc;
 }
 

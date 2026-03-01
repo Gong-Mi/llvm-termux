@@ -37,7 +37,11 @@ typedef u64 UIntMax;
 #endif
 
 /// \brief Largest floating-point type we support.
+#if defined(__ANDROID__)
+typedef double FloatMax;
+#else
 typedef long double FloatMax;
+#endif
 
 /// \brief A description of a source location. This corresponds to Clang's
 /// \c PresumedLoc type.

@@ -223,6 +223,8 @@ static void RenderText(InternalScopedString *Buffer, const char *Message,
       // long doubles to be 64 bit. Just cast the float value to a regular
       // double to avoid the potential ambiguity in MinGW mode.
       sprintf_s(FloatBuffer, sizeof(FloatBuffer), "%g", (double)A.Float);
+#elif defined(__ANDROID__)
+      snprintf(FloatBuffer, sizeof(FloatBuffer), "%g", (double)A.Float);
 #else
       snprintf(FloatBuffer, sizeof(FloatBuffer), "%Lg", (long double)A.Float);
 #endif

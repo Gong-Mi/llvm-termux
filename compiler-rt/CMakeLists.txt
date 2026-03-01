@@ -1,3 +1,4 @@
+set(COMPILER_RT_DEFAULT_TARGET_ARCH aarch64)
 # CMake build for CompilerRT.
 #
 # An important constraint of the build is that it only produces libraries

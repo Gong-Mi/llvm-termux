@@ -1,3 +1,5 @@
+set(CMAKE_C_COMPILER_WORKS ON)
+set(CMAKE_CXX_COMPILER_WORKS ON)
 # TODO: This file assumes the Clang toolchain so it'd be better if it lived in
 # Clang, except there already is clang/runtime directory which contains
 # similar although simpler functionality. We should figure out how to merge

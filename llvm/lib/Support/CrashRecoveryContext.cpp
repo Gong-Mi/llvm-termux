@@ -21,7 +21,7 @@ using namespace llvm;
 namespace {
 
 struct CrashRecoveryContextImpl;
-static LLVM_THREAD_LOCAL const CrashRecoveryContextImpl *CurrentContext;
+alignas(64) static LLVM_THREAD_LOCAL const CrashRecoveryContextImpl *CurrentContext;
 
 struct CrashRecoveryContextImpl {
   // When threads are disabled, this links up all active
@@ -88,7 +88,7 @@ std::mutex &getCrashRecoveryContextMutex() {
 
 static bool gCrashRecoveryEnabled = false;
 
-static LLVM_THREAD_LOCAL const CrashRecoveryContext *IsRecoveringFromCrash;
+alignas(64) static LLVM_THREAD_LOCAL const CrashRecoveryContext *IsRecoveringFromCrash;
 
 } // namespace
 
@@ -307,7 +307,7 @@ static LONG CALLBACK ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo)
 // CrashRecoveryContext at all.  So we make use of a thread-local
 // exception table.  The handles contained in here will either be
 // non-NULL, valid VEH handles, or NULL.
-static LLVM_THREAD_LOCAL const void* sCurrentExceptionHandle;
+alignas(64) static LLVM_THREAD_LOCAL const void* sCurrentExceptionHandle;
 
 static void installExceptionOrSignalHandlers() {
   // We can set up vectored exception handling now.  We will install our
