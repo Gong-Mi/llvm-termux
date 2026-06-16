@@ -13,7 +13,7 @@
 #include "flang/Evaluate/target.h"
 #include "flang/Frontend/TargetOptions.h"
 #include "llvm/Target/TargetMachine.h"
-#include <cfloat>
+#include <float.h>
 
 namespace Fortran::tools {
 

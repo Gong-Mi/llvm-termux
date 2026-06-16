@@ -152,9 +152,10 @@ extern "C" void *mlirAlloc(uint64_t size) { return malloc(size); }
 extern "C" void *mlirAlignedAlloc(uint64_t alignment, uint64_t size) {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__ANDROID__)
   // aligned_alloc was added in MacOS 10.15. Fall back to posix_memalign to also
-  // support older versions.
+  // support older versions. Termux/Android may not expose aligned_alloc from
+  // the selected API level, but it does provide posix_memalign.
   void *result = nullptr;
   (void)::posix_memalign(&result, alignment, size);
   return result;

@@ -35,6 +35,28 @@
 /* Use 'long double' versions of libm functions. */
 #include <complex.h>
 
+#if defined(__ANDROID__)
+/* Android bionic lacks long-double complex functions (cacosl, casinl, etc.).
+ * Fallback to double-complex functions; precision loss is acceptable for
+ * platforms where long double == double anyway. */
+#define CAbs(x) cabs(x)
+#define CAcos(x) cacos(x)
+#define CAcosh(x) cacosh(x)
+#define CAsin(x) casin(x)
+#define CAsinh(x) casinh(x)
+#define CAtan(x) catan(x)
+#define CAtanh(x) catanh(x)
+#define CCos(x) ccos(x)
+#define CCosh(x) ccosh(x)
+#define CExp(x) cexp(x)
+#define CLog(x) clog(x)
+#define CPow(x, p) cpow(x, p)
+#define CSin(x) csin(x)
+#define CSinh(x) csinh(x)
+#define CSqrt(x) csqrt(x)
+#define CTan(x) ctan(x)
+#define CTanh(x) ctanh(x)
+#else
 #define CAbs(x) cabsl(x)
 #define CAcos(x) cacosl(x)
 #define CAcosh(x) cacoshl(x)
@@ -52,6 +74,8 @@
 #define CSqrt(x) csqrtl(x)
 #define CTan(x) ctanl(x)
 #define CTanh(x) ctanhl(x)
+#endif
+
 #elif HAS_LIBMF128
 /* We can use __float128 versions of libm functions.
  * __STDC_WANT_IEC_60559_TYPES_EXT__ needs to be defined

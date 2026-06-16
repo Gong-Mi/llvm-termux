@@ -1,3 +1,4 @@
+set(COMPILER_RT_BUILD_FUZZER OFF CACHE BOOL "" FORCE)
 set(COMPILER_RT_DEFAULT_TARGET_ARCH aarch64)
 # CMake build for CompilerRT.
 #
@@ -356,6 +357,11 @@ if("${ANDROID_API_LEVEL}" GREATER_EQUAL 29)
   list(APPEND SANITIZER_COMMON_CFLAGS -fno-emulated-tls)
   string(APPEND COMPILER_RT_TEST_COMPILER_CFLAGS " -fno-emulated-tls")
 endif()
+# Android/Termux bionic lacks outline atomic helpers (e.g. __aarch64_cas4_acq_rel).
+# Force inline atomics for all sanitizer runtimes.
+if(ANDROID)
+  list(APPEND SANITIZER_COMMON_CFLAGS -mno-outline-atomics)
+endif()
 if(NOT WIN32)
   append_list_if(COMPILER_RT_HAS_FPIC_FLAG -fPIC SANITIZER_COMMON_CFLAGS)
 endif()
@@ -701,7 +707,13 @@ if (SANITIZER_CXX_ABI_LIBNAME STREQUAL "libc++")
     append_list_if(COMPILER_RT_HAS_LIBCXX c++ SANITIZER_CXX_ABI_LIBRARIES)
   endif()
 elseif (SANITIZER_CXX_ABI_LIBNAME STREQUAL "libcxxabi")
-  list(APPEND SANITIZER_CXX_ABI_LIBRARIES "c++abi")
+  if(ANDROID)
+    # Android/Termux bionic does not ship libc++abi; cxxabi symbols live in
+    # libc++_shared.so.
+    list(APPEND SANITIZER_CXX_ABI_LIBRARIES "c++_shared")
+  else()
+    list(APPEND SANITIZER_CXX_ABI_LIBRARIES "c++abi")
+  endif()
 elseif (SANITIZER_CXX_ABI_LIBNAME STREQUAL "libstdc++")
   append_list_if(COMPILER_RT_HAS_LIBSTDCXX stdc++ SANITIZER_CXX_ABI_LIBRARIES)
 endif()

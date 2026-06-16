@@ -195,7 +195,13 @@ template <typename Unused = void>
 static count_t GetSystemClockCount(int kind, fallback_implementation) {
   struct timespec tspec;
 
+#if defined(__ANDROID__)
+  // Android bionic may not expose timespec_get at the selected API level,
+  // but it does provide clock_gettime.
+  if (clock_gettime(CLOCK_REALTIME, &tspec) != 0) {
+#else
   if (timespec_get(&tspec, TIME_UTC) < 0) {
+#endif
     // Return -HUGE(COUNT) to represent failure.
     return -static_cast<count_t>(GetHUGE(kind));
   }

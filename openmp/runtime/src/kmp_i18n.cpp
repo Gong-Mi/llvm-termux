@@ -73,12 +73,20 @@ void __kmp_i18n_catopen() {
 #if KMP_OS_UNIX
 #define KMP_I18N_OK
 
+#if !defined(__ANDROID__)
 #include <nl_types.h>
 
 #define KMP_I18N_NULLCAT ((nl_catd)(-1))
 static nl_catd cat = KMP_I18N_NULLCAT; // !!! Shall it be volatile?
 static char const *name =
     (KMP_VERSION_MAJOR == 4 ? "libguide.cat" : "libomp.cat");
+#else
+// Android bionic does not provide nl_types.h / catgets / catopen / catclose.
+// Use the built-in default message table directly.
+#define KMP_I18N_NULLCAT ((void *)(-1))
+static void *cat = KMP_I18N_NULLCAT;
+static char const *name = NULL;
+#endif
 
 /* Useful links:
 http://www.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap08.html#tag_08_02
@@ -88,6 +96,13 @@ http://www.opengroup.org/onlinepubs/000095399/functions/setlocale.html
 
 void __kmp_i18n_do_catopen() {
   int english = 0;
+
+#if defined(__ANDROID__)
+  // Android bionic lacks catgets/catopen/catclose; always use built-in table.
+  status = KMP_I18N_ABSENT;
+  return;
+#endif
+
   char *lang = __kmp_env_get("LANG");
   // TODO: What about LC_ALL or LC_MESSAGES?
 
@@ -120,6 +135,13 @@ void __kmp_i18n_do_catopen() {
     return;
   }
 
+#if defined(__ANDROID__)
+  // Android bionic lacks catopen/catgets/catclose; always use built-in table.
+  status = KMP_I18N_ABSENT;
+  return;
+#endif
+
+#if !defined(__ANDROID__)
   cat = catopen(name, 0);
   // TODO: Why do we pass 0 in flags?
   status = (cat == KMP_I18N_NULLCAT ? KMP_I18N_ABSENT : KMP_I18N_OPENED);
@@ -173,12 +195,15 @@ void __kmp_i18n_do_catopen() {
     }
     __kmp_str_buf_free(&version);
   }
+#endif // !__ANDROID__
 } // func __kmp_i18n_do_catopen
 
 void __kmp_i18n_catclose() {
   if (status == KMP_I18N_OPENED) {
     KMP_DEBUG_ASSERT(cat != KMP_I18N_NULLCAT);
+#if !defined(__ANDROID__)
     catclose(cat);
+#endif
     cat = KMP_I18N_NULLCAT;
   }
   status = KMP_I18N_CLOSED;
@@ -196,8 +221,12 @@ char const *__kmp_i18n_catgets(kmp_i18n_id_t id) {
         __kmp_i18n_catopen();
       }
       if (status == KMP_I18N_OPENED) {
+#if !defined(__ANDROID__)
         message = catgets(cat, section, number,
                           __kmp_i18n_default_table.sect[section].str[number]);
+#else
+        message = NULL; // Android uses built-in table directly.
+#endif
       }
       if (message == NULL) {
         message = __kmp_i18n_default_table.sect[section].str[number];

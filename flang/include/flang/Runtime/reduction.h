@@ -15,7 +15,7 @@
 #include "flang/Common/uint128.h"
 #include "flang/Runtime/cpp-type.h"
 #include "flang/Runtime/entry-names.h"
-#include <cfloat>
+#include <float.h>
 #include <cinttypes>
 #include <complex>
 #include <cstdint>

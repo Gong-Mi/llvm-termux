@@ -9,6 +9,11 @@ include_directories(..)
 set(UBSAN_CFLAGS
   ${SANITIZER_COMMON_CFLAGS}
   -DSANITIZER_COMMON_NO_REDEFINE_BUILTINS)
+# Android/Termux bionic lacks outline atomic helpers (e.g. __aarch64_cas4_acq_rel).
+# Force inline atomics so ubsan_minimal shared library links without builtins.
+if(ANDROID)
+  list(APPEND UBSAN_CFLAGS -mno-outline-atomics)
+endif()
 append_rtti_flag(OFF UBSAN_CFLAGS)
 
 set(UBSAN_LINK_FLAGS ${SANITIZER_COMMON_LINK_FLAGS})

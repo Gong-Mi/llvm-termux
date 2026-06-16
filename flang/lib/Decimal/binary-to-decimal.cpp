@@ -9,7 +9,7 @@
 #include "big-radix-floating-point.h"
 #include "flang/Decimal/decimal.h"
 #include <cassert>
-#include <cfloat>
+#include <float.h>
 #include <string>
 
 namespace Fortran::decimal {

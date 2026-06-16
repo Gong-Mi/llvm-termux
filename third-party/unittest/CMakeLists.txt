@@ -86,6 +86,18 @@ add_llvm_library("${gtest_name}"
   ${BUILDTREE_ONLY}
 )
 
+# Android/Termux: runtimes_gtest may be linked into shared libraries (e.g.
+# libomp_testing.so) but is built as a static archive. Force -fPIC so the
+# linker can use it in a shared object.
+if(ANDROID AND LLVM_RUNTIMES_BUILD)
+  if(TARGET "${gtest_name}")
+    target_compile_options("${gtest_name}" PRIVATE -fPIC)
+  endif()
+  if(TARGET "${gtest_name}_main")
+    target_compile_options("${gtest_name}_main" PRIVATE -fPIC)
+  endif()
+endif()
+
 # The googletest and googlemock sources don't presently use the 'override'
 # keyword, which leads to lots of warnings from -Wsuggest-override. Disable
 # that warning here for any targets that link to gtest.

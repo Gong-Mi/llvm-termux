@@ -15,6 +15,11 @@
 namespace Fortran::runtime {
 using F128Type = CppTypeFor<TypeCategory::Real, 16>;
 
+// Guard: only define F128Type specializations when 128-bit float is supported.
+// On Android/arm64, __float128 is not available and F128Type resolves to void,
+// which would make template specializations like ABSTy<void> emit compile errors.
+#if __STDCPP_FLOAT128_T__ || HAS_LDBL128 || HAS_FLOAT128
+
 template <> struct ABSTy<F128Type> {
   static F128Type compute(F128Type x) { return Abs<true>::invoke(x); }
 };
@@ -50,6 +55,8 @@ template <> struct QNANTy<F128Type> {
 template <> struct SQRTTy<F128Type> {
   static F128Type compute(F128Type x) { return Sqrt<true>::invoke(x); }
 };
+
+#endif // __STDCPP_FLOAT128_T__ || HAS_LDBL128 || HAS_FLOAT128
 
 } // namespace Fortran::runtime
 #endif // FLANG_RT_QUADMATH_NUMERIC_TEMPLATE_SPECS_H_

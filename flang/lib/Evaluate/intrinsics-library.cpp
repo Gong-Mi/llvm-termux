@@ -18,7 +18,7 @@
 #include "flang/Common/idioms.h"
 #include "flang/Common/static-multimap-view.h"
 #include "flang/Evaluate/expression.h"
-#include <cfloat>
+#include <float.h>
 #include <cmath>
 #include <complex>
 #include <functional>

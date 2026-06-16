@@ -70,6 +70,12 @@ set(UBSAN_DYNAMIC_LIBS
   ${SANITIZER_CXX_ABI_LIBRARIES}
   ${SANITIZER_COMMON_LINK_LIBS})
 
+# Android/Termux: libc++_shared.so provides cxxabi typeinfo; there is no
+# separate libc++abi.so / libc++abi.a.
+if(ANDROID)
+  list(APPEND UBSAN_DYNAMIC_LIBS c++_shared)
+endif()
+
 append_list_if(COMPILER_RT_HAS_LIBDL dl UBSAN_DYNAMIC_LIBS)
 append_list_if(COMPILER_RT_HAS_LIBLOG log UBSAN_DYNAMIC_LIBS)
 append_list_if(COMPILER_RT_HAS_LIBRT rt UBSAN_DYNAMIC_LIBS)
