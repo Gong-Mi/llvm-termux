@@ -9,8 +9,12 @@ ANDROID_TRIPLE="aarch64-unknown-linux-android24"
 # CPU & OS flags (no _LIBCPP_ABI_NAMESPACE — now set via __config_site as __ndk1)
 CPU_FLAGS="-fPIC -march=armv9-a+sve2+bf16+i8mm --target=$ANDROID_TRIPLE --sysroot=/data/data/com.termux/files -stdlib=libc++ -D_LIBCPP_DISABLE_AVAILABILITY -D_LIBCPP_NO_ABI_TAG -D_LIBCPP_ABI_NAMESPACE=__ndk1 -D_GNU_SOURCE -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -O3 -I$BUILD_DIR/include-fix -I$TERMUX_PREFIX/include -I$TERMUX_PREFIX/include/aarch64-linux-android"
 
-# Linker flags — 64K page alignment + system rpath only (build rpath handled by cmake BUILD_RPATH)
-LINKER_FLAGS="-Wl,-z,max-page-size=65536 -Wl,-z,common-page-size=65536 -Wl,-z,separate-loadable-segments -L$TERMUX_PREFIX/lib -Wl,-rpath,$TERMUX_PREFIX/lib /data/data/com.termux/files/home/tmp/20260613/libhash_stub.a"
+# ccache — reduce rebuild time, limit cache to 2GB on phone storage
+export CCACHE_MAXSIZE=2G
+export CCACHE_DIR="$PROJECT_ROOT/.ccache"
+
+# Linker flags — 16K page alignment (compatible with Android 15+ 16K pages) + system rpath only
+LINKER_FLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -L$TERMUX_PREFIX/lib -Wl,-rpath,$TERMUX_PREFIX/lib /data/data/com.termux/files/home/tmp/20260613/libhash_stub.a"
 BUILD_RPATH="$TERMUX_PREFIX/lib"
 
 mkdir -p "$BUILD_DIR"
@@ -22,6 +26,8 @@ cmake -G Ninja \
     -DCMAKE_C_COMPILER="$TERMUX_PREFIX/bin/clang" \
     -DCMAKE_CXX_COMPILER="$TERMUX_PREFIX/bin/clang++" \
     -DCMAKE_ASM_COMPILER="$TERMUX_PREFIX/bin/clang" \
+    -DCMAKE_C_COMPILER_LAUNCHER="ccache" \
+    -DCMAKE_CXX_COMPILER_LAUNCHER="ccache" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$TERMUX_PREFIX" \
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
