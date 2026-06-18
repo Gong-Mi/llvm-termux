@@ -7,15 +7,17 @@ TERMUX_PREFIX="/data/data/com.termux/files/usr"
 ANDROID_TRIPLE="aarch64-unknown-linux-android24"
 
 # CPU & OS flags (no _LIBCPP_ABI_NAMESPACE — now set via __config_site as __ndk1)
-CPU_FLAGS="-fPIC -march=armv9-a+sve2+bf16+i8mm --target=$ANDROID_TRIPLE --sysroot=/data/data/com.termux/files -stdlib=libc++ -D_LIBCPP_DISABLE_AVAILABILITY -D_LIBCPP_NO_ABI_TAG -D_LIBCPP_ABI_NAMESPACE=__ndk1 -D_GNU_SOURCE -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -O3 -I$BUILD_DIR/include-fix -I$TERMUX_PREFIX/include -I$TERMUX_PREFIX/include/aarch64-linux-android"
+# -stdlib=libc++ only belongs in CXX flags, not C flags — C compiler rejects it
+C_FLAGS="-fPIC -march=armv9-a+sve2+bf16+i8mm --target=$ANDROID_TRIPLE --sysroot=/data/data/com.termux/files -D_LIBCPP_DISABLE_AVAILABILITY -D_LIBCPP_NO_ABI_TAG -D_LIBCPP_ABI_NAMESPACE=__ndk1 -D_GNU_SOURCE -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -O3 -I$BUILD_DIR/include-fix -I$TERMUX_PREFIX/include -I$TERMUX_PREFIX/include/aarch64-linux-android"
+CXX_FLAGS="$C_FLAGS -stdlib=libc++ -Wno-unused-command-line-argument"
 
-# ccache — reduce rebuild time, limit cache to 2GB on phone storage
-export CCACHE_MAXSIZE=2G
+# ccache — 30GB cache on phone storage
+export CCACHE_MAXSIZE=30G
 export CCACHE_DIR="$PROJECT_ROOT/.ccache"
 
 # Linker flags — 16K page alignment (compatible with Android 15+ 16K pages) + system rpath only
-LINKER_FLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -L$TERMUX_PREFIX/lib -Wl,-rpath,$TERMUX_PREFIX/lib /data/data/com.termux/files/home/tmp/20260613/libhash_stub.a"
-BUILD_RPATH="$TERMUX_PREFIX/lib"
+LINKER_FLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -L$TERMUX_PREFIX/lib"
+BUILD_RPATH="$BUILD_DIR/lib:$TERMUX_PREFIX/lib"
 
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
@@ -39,7 +41,7 @@ cmake -G Ninja \
     -DLLVM_HOST_TRIPLE="$ANDROID_TRIPLE" \
     -DLLVM_DEFAULT_TARGET_TRIPLE="$ANDROID_TRIPLE" \
     -DLLVM_TARGETS_TO_BUILD="AArch64;AMDGPU;ARM;AVR;BPF;Hexagon;Lanai;LoongArch;MSP430;Mips;NVPTX;PowerPC;RISCV;SPIRV;Sparc;SystemZ;VE;WebAssembly;X86;XCore" \
-    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;polly;mlir;flang" \
     -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind;openmp" \
     -DLLVM_RUNTIME_TARGETS="$ANDROID_TRIPLE" \
     -DLLVM_BUILD_LLVM_DYLIB=ON \
@@ -53,20 +55,20 @@ cmake -G Ninja \
     -DCLANG_DEFAULT_RTLIB="compiler-rt" \
     -DCLANG_DEFAULT_CXX_STDLIB="libc++" \
     -DDEFAULT_SYSROOT="/data/data/com.termux/files" \
-    -DCMAKE_C_FLAGS="$CPU_FLAGS" \
-    -DCMAKE_CXX_FLAGS="$CPU_FLAGS" \
+    -DCMAKE_C_FLAGS="$C_FLAGS" \
+    -DCMAKE_CXX_FLAGS="$CXX_FLAGS" \
     -DCMAKE_EXE_LINKER_FLAGS="$LINKER_FLAGS" \
     -DCMAKE_SHARED_LINKER_FLAGS="$LINKER_FLAGS" \
     -DCMAKE_MODULE_LINKER_FLAGS="$LINKER_FLAGS" \
-    -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_C_FLAGS="$CPU_FLAGS -funwind-tables" \
-    -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_CXX_FLAGS="$CPU_FLAGS -funwind-tables" \
+    -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_C_FLAGS="$C_FLAGS -funwind-tables" \
+    -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_CXX_FLAGS="$CXX_FLAGS -funwind-tables" \
     -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_SYSROOT="/data/data/com.termux/files" \
     -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_EXE_LINKER_FLAGS="-L$TERMUX_PREFIX/lib /data/data/com.termux/files/home/tmp/20260613/libhash_stub.a" \
     -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_SHARED_LINKER_FLAGS="-L$TERMUX_PREFIX/lib /data/data/com.termux/files/home/tmp/20260613/libhash_stub.a" \
     -DRUNTIMES_${ANDROID_TRIPLE}_CMAKE_REQUIRED_LIBRARIES="-L$TERMUX_PREFIX/lib;-lc++_shared" \
     -DRUNTIMES_${ANDROID_TRIPLE}_COMPILER_RT_INCLUDE_TESTS:BOOL=OFF \
     -DLLVM_PARALLEL_COMPILE_JOBS=8 \
-    -DLLVM_PARALLEL_LINK_JOBS=1 \
+    -DLLVM_PARALLEL_LINK_JOBS=2 \
     "$PROJECT_ROOT/llvm"
 
 echo ">>> Configure done."

@@ -33,7 +33,7 @@ alignas(64) static thread_local unsigned threadIndex = UINT_MAX;
 
 unsigned parallel::getThreadIndex() { GET_THREAD_INDEX_IMPL; }
 #else
-thread_local unsigned parallel::threadIndex = UINT_MAX;
+alignas(64) thread_local unsigned parallel::threadIndex = UINT_MAX;
 #endif
 
 namespace {
