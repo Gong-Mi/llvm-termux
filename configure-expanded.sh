@@ -8,7 +8,7 @@ ANDROID_TRIPLE="aarch64-unknown-linux-android24"
 
 # CPU & OS flags (no _LIBCPP_ABI_NAMESPACE — now set via __config_site as __ndk1)
 # -stdlib=libc++ only belongs in CXX flags, not C flags — C compiler rejects it
-C_FLAGS="-fPIC -march=armv9-a+sve2+bf16+i8mm --target=$ANDROID_TRIPLE --sysroot=/data/data/com.termux/files -D_LIBCPP_DISABLE_AVAILABILITY -D_LIBCPP_NO_ABI_TAG -D_LIBCPP_ABI_NAMESPACE=__ndk1 -D_GNU_SOURCE -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -O3 -I$BUILD_DIR/include-fix -I$TERMUX_PREFIX/include -I$TERMUX_PREFIX/include/aarch64-linux-android"
+C_FLAGS="-fPIC -march=armv9-a+bf16+i8mm --target=$ANDROID_TRIPLE --sysroot=/data/data/com.termux/files -D_LIBCPP_DISABLE_AVAILABILITY -D_LIBCPP_NO_ABI_TAG -D_LIBCPP_ABI_NAMESPACE=__ndk1 -D_GNU_SOURCE -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -O3 -I$BUILD_DIR/include-fix -I$TERMUX_PREFIX/include -I$TERMUX_PREFIX/include/aarch64-linux-android"
 CXX_FLAGS="$C_FLAGS -stdlib=libc++ -Wno-unused-command-line-argument"
 
 # ccache — 30GB cache on phone storage
